@@ -7,7 +7,7 @@ import {
 } from "@/helpers/Mpc";
 import { useLoadingStore } from "@/store";
 import type { CardOption } from "@/types/Card";
-import { addCards, addCustomImage, addRemoteImage} from "@/helpers/dbUtils";
+import { addCards, addCustomImage, addRemoteImage } from "@/helpers/dbUtils";
 import {
   HelperText
 } from "flowbite-react";
@@ -24,7 +24,7 @@ async function readText(file: File): Promise<string> {
 
 export function MPCAutofillImporter() {
 
-    const { setLoadingTask, setLoadingMessage } = useLoadingStore.getState();
+  const { setLoadingTask, setLoadingMessage } = useLoadingStore.getState();
 
   async function addUploadedFiles(
     files: FileList,
@@ -126,83 +126,83 @@ export function MPCAutofillImporter() {
   };
 
 
-    return( 
+  return (
 
-<div className="flex flex-col gap-4">
-          <div className="space-y-1">
-            <h6 className="font-medium dark:text-white">
-              Upload MPC Images (
-              <a
-                href="https://mpcfill.com"
-                target="_blank"
-                rel="noreferrer"
-                className="underline hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                MPC Autofill
-                <ExternalLink className="inline-block size-4 ml-1" />
-              </a>
-              )
-            </h6>
+    <div className="flex flex-col gap-4">
+      <div className="space-y-1">
+        <h6 className="font-medium dark:text-white">
+          Upload MPC Images (
+          <a
+            href="https://mpcfill.com"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            MPC Autofill
+            <ExternalLink className="inline-block size-4 ml-1" />
+          </a>
+          )
+        </h6>
 
-            <label
-              htmlFor="upload-mpc"
-              className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
-            >
-              Choose Files
-            </label>
-            <input
-              id="upload-mpc"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleUploadMpcFill}
-              onClick={(e) => ((e.target as HTMLInputElement).value = "")}
-              className="hidden"
-            />
-          </div>
+        <label
+          htmlFor="upload-mpc"
+          className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
+        >
+          Choose Files
+        </label>
+        <input
+          id="upload-mpc"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleUploadMpcFill}
+          onClick={(e) => ((e.target as HTMLInputElement).value = "")}
+          className="hidden"
+        />
+      </div>
 
-          <div className="space-y-1">
-            <h6 className="font-medium dark:text-white">
-              Import MPC Text (XML)
-            </h6>
+      <div className="space-y-1">
+        <h6 className="font-medium dark:text-white">
+          Import MPC Text (XML)
+        </h6>
 
-            <label
-              htmlFor="import-mpc-xml"
-              className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
-            >
-              Choose File
-            </label>
-            <input
-              id="import-mpc-xml"
-              type="file"
-              accept=".xml,.txt,.csv,.log,text/xml,text/plain"
-              onChange={handleImportMpcXml}
-              onClick={(e) => ((e.target as HTMLInputElement).value = "")}
-              className="hidden"
-            />
-          </div>
+        <label
+          htmlFor="import-mpc-xml"
+          className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
+        >
+          Choose File
+        </label>
+        <input
+          id="import-mpc-xml"
+          type="file"
+          accept=".xml,.txt,.csv,.log,text/xml,text/plain"
+          onChange={handleImportMpcXml}
+          onClick={(e) => ((e.target as HTMLInputElement).value = "")}
+          className="hidden"
+        />
+      </div>
 
-          <div className="space-y-1">
-            <h6 className="font-medium dark:text-white">Upload Other Images</h6>
-            <label
-              htmlFor="upload-standard"
-              className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
-            >
-              Choose Files
-            </label>
-            <input
-              id="upload-standard"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleUploadStandard}
-              onClick={(e) => ((e.target as HTMLInputElement).value = "")}
-              className="hidden"
-            />
-            <HelperText>
-              You can upload images from mtgcardsmith, custom designs, etc.
-            </HelperText>
-          </div>
-        </div>)
+      <div className="space-y-1">
+        <h6 className="font-medium dark:text-white">Upload Other Images</h6>
+        <label
+          htmlFor="upload-standard"
+          className="inline-block w-full text-center cursor-pointer rounded-md bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
+        >
+          Choose Files
+        </label>
+        <input
+          id="upload-standard"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleUploadStandard}
+          onClick={(e) => ((e.target as HTMLInputElement).value = "")}
+          className="hidden"
+        />
+        <HelperText>
+          You can upload images from mtgcardsmith, custom designs, etc.
+        </HelperText>
+      </div>
+    </div>)
 
 }

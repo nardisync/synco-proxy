@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useCardsStore } from '@/store';
-import { Button, TextInput, Label, Tooltip, HelperText} from "flowbite-react";
+import { Button, TextInput, Label, Tooltip, HelperText } from "flowbite-react";
 import { HelpCircle } from "lucide-react";
 import { useLoadingStore } from '@/store/loading';
-import { urlToFile } from '@/helpers/ImageHelper'; 
+import { urlToFile } from '@/helpers/ImageHelper';
 
-import {} from "flowbite-react";
+import { } from "flowbite-react";
 
 import type { DeckData } from '@/types/Card'
 import { createCardsFromDeckData } from "@/helpers/MoxfieldMagicCardHelper";
 
 
-// Interfaccia per i dati della carta necessari allo store (come gestisce la tua app le carte prima di salvarle)
+// Interfaccia per i dati della carta necessari allo store
 export interface NewCardEntry {
     name: string;
     imageUrl: string;
@@ -24,7 +24,7 @@ export interface NewCardEntry {
 function extractDeckId(url: string): string | null {
     if (!url) return null;
     const match = url.match(/moxfield\.com\/decks\/([a-zA-Z0-9_-]+)/);
-    
+
     if (match && match[1]) {
         console.log(`[MoxfieldHandler] ID Moxfield estratto: ${match[1]}`);
         return match[1];
@@ -36,46 +36,46 @@ function extractDeckId(url: string): string | null {
 
 
 // Importa la logica core che abbiamo esportato nel Passo 1
-import { processMpcUploadFiles } from "@/helpers/dbUtils"; 
+import { processMpcUploadFiles } from "@/helpers/dbUtils";
 
 
-async function autoDownloadAndProcess(uniqueCardEntries: NewCardEntry[]) { 
-   const { setLoadingTask, setProgress, setLoadingMessage } = useLoadingStore.getState();
-   
-   // NUOVO: Usiamo una Map per associare il nome della carta al File scaricato
-   const fileMap = new Map<string, File>(); 
+async function autoDownloadAndProcess(uniqueCardEntries: NewCardEntry[]) {
+    const { setLoadingTask, setProgress, setLoadingMessage } = useLoadingStore.getState();
 
-   try {
-      // 1. GESTIONE DEL DOWNLOAD
-      setLoadingTask("Processing Images"); 
-      const total = uniqueCardEntries.length;
+    // NUOVO: Usiamo una Map per associare il nome della carta al File scaricato
+    const fileMap = new Map<string, File>();
 
-      for (let i = 0; i < total; i++) {
-         const entry = uniqueCardEntries[i];
-         // Il messaggio mostra ancora il nome della carta unica
-         setLoadingMessage(`Downloading artwork for: ${entry.name}`); 
-         setProgress(Math.round((i / total) * 100)); 
+    try {
+        // 1. GESTIONE DEL DOWNLOAD
+        setLoadingTask("Processing Images");
+        const total = uniqueCardEntries.length;
 
-         // Scarica l'immagine e crea l'oggetto File
-         const file = await urlToFile(entry.imageUrl, entry.name);
-         // AGGIUNGI IL FILE SCARICATO ALLA MAPPA, USANDO IL NOME COME CHIAVE
-         fileMap.set(entry.name, file); 
-      }
-      
-      // Pulizia dello stato del download
-      setProgress(100);
-      setLoadingMessage("Artwork download complete. Starting local processing...");
-      
-      // 2. CHIAMATA ALLA LOGICA CORE
-      // Passa la lista delle entry uniche (che include la quantità) e la Map dei file
-      await processMpcUploadFiles(uniqueCardEntries, fileMap, { hasBakedBleed: false }); 
+        for (let i = 0; i < total; i++) {
+            const entry = uniqueCardEntries[i];
+            // Il messaggio mostra ancora il nome della carta unica
+            setLoadingMessage(`Downloading artwork for: ${entry.name}`);
+            setProgress(Math.round((i / total) * 100));
 
-   } catch (error) {
-      console.error("Errore critico durante l'importazione:", error);
-      setLoadingTask(null); 
-      setLoadingMessage("Import failed. Check console for details.");
-      setProgress(0);
-   }
+            // Scarica l'immagine e crea l'oggetto File
+            const file = await urlToFile(entry.imageUrl, entry.name);
+            // AGGIUNGI IL FILE SCARICATO ALLA MAPPA, USANDO IL NOME COME CHIAVE
+            fileMap.set(entry.name, file);
+        }
+
+        // Pulizia dello stato del download
+        setProgress(100);
+        setLoadingMessage("Artwork download complete. Starting local processing...");
+
+        // 2. CHIAMATA ALLA LOGICA CORE
+        // Passa la lista delle entry uniche (che include la quantità) e la Map dei file
+        await processMpcUploadFiles(uniqueCardEntries, fileMap, { hasBakedBleed: false });
+
+    } catch (error) {
+        console.error("Errore critico durante l'importazione:", error);
+        setLoadingTask(null);
+        setLoadingMessage("Import failed. Check console for details.");
+        setProgress(0);
+    }
 }
 
 
@@ -84,12 +84,12 @@ async function autoDownloadAndProcess(uniqueCardEntries: NewCardEntry[]) {
  */
 async function getMoxfieldDecklist(deckId: string): Promise<NewCardEntry[]> {
     const PROXY_URL = `/mox-api/v2/decks/all/${deckId}`;
-    
+
     console.log(`[MoxfieldHandler] Richiesta API in corso a: ${PROXY_URL}`);
 
     try {
         const response = await fetch(PROXY_URL, {
-            headers: { 'User-Agent': 'ProxxiesAtHomeMoxfieldImporter/1.0' } 
+            headers: { 'User-Agent': 'ProxxiesAtHomeMoxfieldImporter/1.0' }
         });
 
         if (!response.ok) {
@@ -100,7 +100,7 @@ async function getMoxfieldDecklist(deckId: string): Promise<NewCardEntry[]> {
         const deckData = await response.json();
         console.log(`[MoxfieldHandler] Dati JSON ricevuti. Inizio elaborazione con MagicCard...`);
         console.log(`[MoxfieldHandler] Dati JSON :`, deckData);
-        
+
         // 1. Usa la tua funzione per creare gli oggetti MagicCard
         const allCardObjects = createCardsFromDeckData(deckData as DeckData);
 
@@ -113,11 +113,11 @@ async function getMoxfieldDecklist(deckId: string): Promise<NewCardEntry[]> {
         // dobbiamo raggrupparli e contare le quantità.
         for (const cardObj of allCardObjects) {
             const name = cardObj.name;
-            
+
             // Scegli l'URL dell'immagine da usare. 
             // Preferiamo Scryfall per alta risoluzione e affidabilità se Moxfield non è cruciale.
             // Se preferisci Moxfield, usa cardObj.getMoxfieldImageUrl()
-            const imageUrl = cardObj.getScryfallImageUrl(); 
+            const imageUrl = cardObj.getScryfallImageUrl();
 
             if (cardMap.has(name)) {
                 cardMap.get(name)!.count += 1;
@@ -125,14 +125,14 @@ async function getMoxfieldDecklist(deckId: string): Promise<NewCardEntry[]> {
                 cardMap.set(name, { count: 1, imageUrl });
             }
         }
-        
+
         // 3. Converte la mappa nel formato `NewCardEntry` richiesto dallo store
         const cardEntries: NewCardEntry[] = Array.from(cardMap.entries()).map(([name, data]) => ({
             name: name,
             imageUrl: data.imageUrl,
             quantity: data.count,
         }));
-        
+
         console.log(`[MoxfieldHandler] Elaborazione completata. Trovate ${cardEntries.length} carte uniche.`);
         return cardEntries; // La funzione si limita a restituire la lista
 
@@ -150,57 +150,52 @@ export function MoxfieldImporter() {
     const [moxfieldLink, setMoxfieldLink] = useState('');
     const [isLoadingMoxfield, setIsLoadingMoxfield] = useState(false);
 
-    // Dobbiamo ottenere la funzione per aggiungere carte dallo store qui
-    // Nota: Il tuo codice originale non esportava `addCardsFromMoxfield`, quindi ne userò una generica che devi definire nel tuo store.
-    const addCardsFromMoxfield = useCardsStore((state) => (state as any).addCardsFromMoxfield); // Adatta questo al tuo useCardsStore reale!
-    
-    // Fallback: Se non hai ancora definito addCardsFromMoxfield, usa addCards generica
-    
 
-// File: MoxfieldImporter.tsx (all'interno del componente MoxfieldImporter)
+    const addCardsFromMoxfield = useCardsStore((state) => (state as any).addCardsFromMoxfield);
 
-const handleImportMoxfield = async () => {
-      console.log("[MoxfieldHandler] Passo 2.1: Inizio processo di importazione.");
-      if (isLoadingMoxfield) return;
 
-      const deckId = extractDeckId(moxfieldLink);
+    const handleImportMoxfield = async () => {
+        console.log("[MoxfieldHandler] Passo 2.1: Inizio processo di importazione.");
+        if (isLoadingMoxfield) return;
 
-      if (!deckId) {
+        const deckId = extractDeckId(moxfieldLink);
+
+        if (!deckId) {
             alert("URL Moxfield non valido. Assicurati che il link sia nel formato corretto.");
             setIsLoadingMoxfield(false);
             return;
-      }
+        }
 
-      setIsLoadingMoxfield(true);
-      
-      try {
+        setIsLoadingMoxfield(true);
+
+        try {
             console.log("[MoxfieldHandler] Passo 3.2: Inizio recupero dati con ID:", deckId);
             // 1. Recupera i dati (senza avviare il download)
             const cardEntries = await getMoxfieldDecklist(deckId);
-            
+
             if (cardEntries.length === 0) {
-                    console.warn("[MoxfieldHandler] Nessuna carta valida trovata nel mazzo.");
-                    alert("Nessuna carta valida trovata nel mazzo Moxfield.");
-                    return;
+                console.warn("[MoxfieldHandler] Nessuna carta valida trovata nel mazzo.");
+                alert("Nessuna carta valida trovata nel mazzo Moxfield.");
+                return;
             }
 
-        // 2. Avvia il download e il salvataggio nel DB (che gestisce il proprio stato di loading)
-        // La logica di autoDownloadAndProcess è completamente ASINCRONA
-        await autoDownloadAndProcess(cardEntries);
-        
+            // 2. Avvia il download e il salvataggio nel DB (che gestisce il proprio stato di loading)
+            // La logica di autoDownloadAndProcess è completamente ASINCRONA
+            await autoDownloadAndProcess(cardEntries);
+
             // Rimuovi la logica obsoleta 'addCardsFromMoxfield' e il fallback
             // perché il lavoro è stato fatto da autoDownloadAndProcess -> processMpcUploadFiles.
-            
+
             console.log(`[MoxfieldHandler] Processo Moxfield completato con successo. Aggiunte ${cardEntries.length} carte uniche.`);
             setMoxfieldLink(''); // Pulisci il campo input
 
-      } catch (error) {
+        } catch (error) {
             console.error("[MoxfieldHandler] Errore durante l'importazione:", error);
             alert("Si è verificato un errore durante l'importazione del mazzo.");
-      } finally {
+        } finally {
             setIsLoadingMoxfield(false);
-      }
-};
+        }
+    };
 
 
     return (
@@ -213,8 +208,8 @@ const handleImportMoxfield = async () => {
                     <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 cursor-pointer" />
                 </Tooltip>
             </div>
-            
-            <Label htmlFor="moxfield-link"/>
+
+            <Label htmlFor="moxfield-link" />
             <TextInput
                 id="moxfield-link"
                 className="w-full"
@@ -224,7 +219,7 @@ const handleImportMoxfield = async () => {
                 placeholder="Esempio: https://moxfield.com/decks/..."
                 disabled={isLoadingMoxfield}
             />
-            
+
             <Button
                 color="blue"
                 className="w-full mt-2"
