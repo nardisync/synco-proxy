@@ -17,7 +17,7 @@ import {
 import { useCardsStore, useLoadingStore, useSettingsStore } from "@/store";
 import type { CardOption, ScryfallCard } from "@/types/Card";
 import axios from "axios";
-import { addCards, addCustomImage, addRemoteImage, processMpcUploadFiles } from "@/helpers/dbUtils";
+import { addCards, addCustomImage, addRemoteImage} from "@/helpers/dbUtils";
 import {
   Button,
   HelperText,
@@ -50,42 +50,61 @@ export function UploadSection() {
 
   const { setLoadingTask, setLoadingMessage } = useLoadingStore.getState();
 
-  // File: UploadSection.tsx (all'interno di UploadSection)
 
-// Rimuovi la vecchia funzione addUploadedFiles
+  async function addUploadedFiles(
+    files: FileList,
+    opts: { hasBakedBleed: boolean }
+  ) {
+    const fileArray = Array.from(files);
+
+    const cardsToAdd: Array<
+      Omit<CardOption, "uuid" | "order"> & { imageId: string }
+    > = [];
+
+    for (const file of fileArray) {
+      const imageId = await addCustomImage(file);
+      cardsToAdd.push({
+        name: inferCardNameFromFilename(file.name) || `Custom Art`,
+        imageId: imageId,
+        isUserUpload: true,
+        hasBakedBleed: opts.hasBakedBleed,
+      });
+    }
+
+    if (cardsToAdd.length > 0) {
+      await addCards(cardsToAdd);
+    }
+  }
 
   const handleUploadMpcFill = async (
-   e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setLoadingTask("Uploading Images");
+
     try {
-     const files = e.target.files;
-     if (files && files.length) {
-      // CONVERSIONE da FileList a File[]
-      const fileArray = Array.from(files); 
-      // Chiama la funzione core, che ora gestisce anche lo stato di caricamento
-      await processMpcUploadFiles(fileArray, { hasBakedBleed: true }); 
-     }
-    } catch (error) {
-          // Gestione errori, se necessario
-      } finally {
-     // L'unica riga che resta è la pulizia dell'input DOM
-     if (e.target) e.target.value = "";
+      const files = e.target.files;
+      if (files && files.length) {
+        await addUploadedFiles(files, { hasBakedBleed: true });
+      }
+    } finally {
+      if (e.target) e.target.value = "";
+
+      setLoadingTask(null);
     }
   };
 
   const handleUploadStandard = async (
-   e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setLoadingTask("Uploading Images");
     try {
-     const files = e.target.files;
-     if (files && files.length) {
-      const fileArray = Array.from(files);
-      await processMpcUploadFiles(fileArray, { hasBakedBleed: false });
-     }
-    } catch (error) {
-          // Gestione errori, se necessario
-      } finally {
-     if (e.target) e.target.value = "";
+      const files = e.target.files;
+      if (files && files.length) {
+        await addUploadedFiles(files, { hasBakedBleed: false });
+      }
+    } finally {
+      if (e.target) e.target.value = "";
+      setLoadingTask(null);
     }
   };
 
