@@ -3,7 +3,7 @@ import type { CardOption } from "@/types/Card";
 
 import { useLoadingStore } from "@/store"; 
 import { inferCardNameFromFilename } from "@/helpers/Mpc"; 
-import type { NewCardEntry } from "@/components/MoxfieldImporter"; // Importa il tipo corretto da MoxfieldImporter.tsx
+import type { NewCardEntry } from "@/components/LeftMenuComponents/MoxfieldImporter"; // Importa il tipo corretto da MoxfieldImporter.tsx
 
 /**
  * Calculates the SHA-256 hash of a file or blob.

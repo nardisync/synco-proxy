@@ -14,6 +14,8 @@ type Store = {
   loadingMessage: string | null;
   progress: number;
   onCancel: (() => void) | null;
+  showClearConfirmModal: boolean;
+  setShowClearConfirmModal: (value: boolean) => void;
   setLoadingTask: (loadingTask: LoadingTask) => void;
   setLoadingMessage: (message: string | null) => void;
   setProgress: (progress: number) => void;
@@ -25,6 +27,8 @@ export const useLoadingStore = create<Store>((set) => ({
   loadingMessage: null,
   progress: 0,
   onCancel: null,
+  showClearConfirmModal: false,
+  setShowClearConfirmModal: (value) => set({ showClearConfirmModal: value }),
   setLoadingTask: (loadingTask) =>
     set({ loadingTask, progress: -1, onCancel: null, loadingMessage: null }),
   setLoadingMessage: (message) => set({ loadingMessage: message }),

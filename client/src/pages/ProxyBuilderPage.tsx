@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo } from "react";
 import { PageSettingsControls } from "../components/PageSettingsControls";
-import { UploadSection } from "../components/UploadSection";
+import { CardsImporterMenu } from "../components/CardsImporterMenu";
 import { useImageProcessing } from "../hooks/useImageProcessing";
 import { useSettingsStore } from "../store";
 import { db } from "../db";
@@ -71,7 +71,7 @@ export default function ProxyBuilderPage() {
 
   return (
     <div className="flex flex-row h-screen justify-between overflow-hidden">
-      <UploadSection />
+      <CardsImporterMenu />
       <Suspense fallback={<PageViewLoader />}>
         <PageView loadingMap={loadingMap} ensureProcessed={ensureProcessed} />
       </Suspense>
