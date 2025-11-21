@@ -56,7 +56,7 @@ export function CardsImporterMenu() {
 
   return (
     <div className="w-1/5 dark:bg-gray-700 bg-gray-100 flex flex-col">
-      <img src={fullLogo} alt="Proxxied Logo" />
+      <img src={fullLogo} alt="Sync's Logo"  style={{ padding: "20px" }}/>
 
       <div className="flex-1 flex flex-col overflow-y-auto gap-6 px-4 pb-4">
         <MoxfieldImporter />

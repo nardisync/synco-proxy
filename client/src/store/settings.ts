@@ -41,22 +41,22 @@ type Store = {
 };
 
 const defaultPageSettings = {
-  pageSizeUnit: "in",
+  pageSizeUnit: "mm",
   pageOrientation: "portrait",
-  pageSizePreset: "Letter",
-  pageWidth: 8.5,
-  pageHeight: 11,
+  pageSizePreset: "A4",
+  pageWidth: 210,
+  pageHeight: 297,
   columns: 3,
   rows: 3,
   bleedEdgeWidth: 1,
   bleedEdge: true,
-  guideColor: "#39FF14",
+  guideColor: "#147AFF",
   guideWidth: 0.5,
   cardSpacingMm: 0,
   cardPositionX: 0,
   cardPositionY: 0,
   zoom: 1,
-  dpi: 900,
+  dpi: 1401,
   globalLanguage: "en",
 } as Store;
 
@@ -118,7 +118,7 @@ export const useSettingsStore = create<Store>()(
     {
       name: "proxxied:layout-settings:v1",
       storage: createJSONStorage(() => indexedDbStorage),
-      version: 2,
+      version: 3,
 
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

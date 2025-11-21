@@ -20,7 +20,7 @@ function getLocalBleedImageUrl(originalUrl: string) {
 }
 
 // Scryfall thumbs sometimes come as .jpg; prefer .png for fewer artifacts
-function preferPng(url:string) {
+function preferPng(url: string) {
   try {
     const u = new URL(url);
     if (
@@ -54,10 +54,13 @@ export async function ExportImagesZip(opts: ExportOpts) {
   const tasks = cards.map((c, i) => {
     const image = c.imageId ? imagesById.get(c.imageId) : undefined;
 
+    // Priorità: exportBlob > originalBlob > sourceUrl
+    const blob = image?.exportBlob || image?.originalBlob;
     let url = image?.sourceUrl || "";
 
-    if (!url) {
-      return async () => null; // empty slot
+    if (!blob && !url) {
+      console.warn("No blob or URL for image", image);
+      return async () => null;
     }
 
     // If it’s not a user upload, run it through the proxy to get the bleed version
@@ -68,36 +71,47 @@ export async function ExportImagesZip(opts: ExportOpts) {
     const baseName = sanitizeFilename(c.name || `Card ${i + 1}`);
     const idx = String(i + 1).padStart(3, "0");
 
-    return async () => {
-      try {
+  return async () => {
+    try {
+      let finalBlob: Blob | undefined = blob;
+
+      // Se non c'è blob ma esiste URL, fetch
+      if (!finalBlob && url) {
         const res = await fetch(url, { mode: "cors", credentials: "omit" });
         if (!res.ok) {
           console.warn(`[Export skipped] Could not fetch: ${url}`);
           return null;
         }
-        const blob = await res.blob();
+        finalBlob = await res.blob();
+      }
 
-        // de-dupe filenames per printed order
-        const count = (usedNames.get(baseName) ?? 0) + 1;
-        usedNames.set(baseName, count);
-        const suffix = count > 1 ? ` (${count})` : "";
+      if (!finalBlob) {
+        console.warn("[Export skipped] No blob or fetched data available", c.name);
+        return null;
+      }
 
-        // Try to keep the right extension if we know it; default to .png
-        const ext =
-          blob.type === "image/jpeg"
-            ? "jpg"
-            : blob.type === "image/webp"
+      // de-dupe filenames per printed order
+      const count = (usedNames.get(baseName) ?? 0) + 1;
+      usedNames.set(baseName, count);
+      const suffix = count > 1 ? ` (${count})` : "";
+
+      // Try to keep the right extension if we know it; default to .png
+      const ext =
+        finalBlob.type === "image/jpeg"
+          ? "jpg"
+          : finalBlob.type === "image/webp"
             ? "webp"
             : "png";
 
-        const filename = `${idx} - ${baseName}${suffix}.${ext}`;
-        zip.file(filename, blob);
-        return true;
-      } catch (err) {
-        console.warn(`[Export skipped] Error fetching ${url}`, err);
-        return null;
-      }
-    };
+      const filename = `${idx} - ${baseName}${suffix}.${ext}`;
+      zip.file(filename, finalBlob);
+      return true;
+    } catch (err) {
+      console.warn(`[Export skipped] Error processing image ${c.name}`, err);
+      return null;
+    }
+  };
+
   });
 
   // Simple concurrency limiter

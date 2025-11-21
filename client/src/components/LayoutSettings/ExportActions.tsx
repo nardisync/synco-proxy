@@ -4,6 +4,7 @@ import { useSettingsStore } from "@/store/settings";
 import { Button } from "flowbite-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db";
+import { all } from "axios";
 
 export function ExportActions() {
   const setLoadingTask = useLoadingStore((state) => state.setLoadingTask);
@@ -109,7 +110,10 @@ export function ExportActions() {
     try {
       const { ExportImagesZip } = await import("@/helpers/ExportImagesZip");
       const allCards = await db.cards.toArray();
+      console.log("All Cards: ", allCards)
+
       const allImages = await db.images.toArray();
+      console.log("All Images: ", allImages)
       await ExportImagesZip({
         cards: allCards,
         images: allImages,
