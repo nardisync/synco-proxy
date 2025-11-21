@@ -12,9 +12,18 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      "/api": {
-        target: "http://localhost:3001",
+      // ⚠️ E' importante che questa regola non catturi i percorsi destinati a /api/moxfield!
+      "/api": { 
+          target: "http://localhost:3001",
+          changeOrigin: true,
+      },
+      
+      '/mox-api': { // <--- NUOVO PREFISSO
+        target: 'https://api2.moxfield.com', 
         changeOrigin: true,
+        secure: true,
+        // ✅ Riscrittura per rimuovere il nuovo prefisso '/mox-api'
+        rewrite: (path) => path.replace(/^\/mox-api/, '') 
       },
     },
   },

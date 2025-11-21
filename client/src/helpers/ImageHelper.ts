@@ -60,3 +60,24 @@ export async function fetchWithRetry(url: string, retries = 3, baseDelay = 250):
   }
   throw new Error(`Fetch failed for ${url} after ${retries} attempts.`);
 }
+
+export async function urlToFile(url: string, name: string): Promise<File> {
+  // 1. Applica la logica di proxy
+  const proxiedUrl = toProxied(url);
+
+  // 2. Esegui il fetch in modo robusto
+  const response = await fetchWithRetry(proxiedUrl, 3); // Usa 3 tentativi come default
+
+  // 3. Ottieni i dati binari come Blob
+  const blob = await response.blob();
+
+  // 4. Crea il nome del file e l'oggetto File
+  const mimeType = blob.type || "image/jpeg"; // Tenta di usare il tipo dal Blob, fallback a JPG
+  const extension = mimeType.split('/')[1] || 'jpg';
+    
+  // Pulisci il nome per un filename valido e aggiungi l'estensione.
+  const filename = `${name.replace(/[^a-z0-9]/gi, '_')}.${extension}`; 
+    
+  // L'oggetto File è ciò che simulerà il file caricato dall'utente
+  return new File([blob], filename, { type: mimeType });
+}

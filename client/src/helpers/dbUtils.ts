@@ -1,6 +1,10 @@
 import { db } from "@/db";
 import type { CardOption } from "@/types/Card";
 
+import { useLoadingStore } from "@/store"; 
+import { inferCardNameFromFilename } from "@/helpers/Mpc"; 
+import type { NewCardEntry } from "@/components/MoxfieldImporter"; // Importa il tipo corretto da MoxfieldImporter.tsx
+
 /**
  * Calculates the SHA-256 hash of a file or blob.
  * @param blob The file or blob to hash.
@@ -311,4 +315,68 @@ export async function rebalanceCardOrders(): Promise<void> {
           await db.cards.bulkPut(rebalancedCards);
         }
   });
+}
+
+
+/**
+ * Logica Core: Elabora le entry uniche, carica le immagini nel DB e aggiunge le carte con la quantità corretta.
+ * @param cardEntries Array di carte uniche con la quantità (es. [Bolt, qty: 4], [Swamp, qty: 10])
+ * @param fileMap Mappa dei File scaricati per nome
+ */
+export async function processMpcUploadFiles(
+  cardEntries: NewCardEntry[], // <-- NUOVO: Lista di entry con quantità
+  fileMap: Map<string, File>, // <-- NUOVO: Mappa dei File
+  opts: { hasBakedBleed: boolean }
+) {
+  const { setLoadingTask, setLoadingMessage, setProgress } = useLoadingStore.getState();
+
+  setLoadingTask("Uploading Images");
+
+  try {
+    const cardsToAdd: Array<
+      Omit<CardOption, "uuid" | "order"> & { imageId: string }
+    > = [];
+    
+    const totalUnique = cardEntries.length; // 74 carte uniche
+    
+    // Itera sulle 74 carte uniche
+    for (const [i, entry] of cardEntries.entries()) {
+      // Aggiorna il messaggio basato sul progresso delle immagini uniche
+      setLoadingMessage(`Processing ${entry.name} (${i + 1}/${totalUnique})`);
+
+      // 1. Recupera e Carica l'immagine UNA SOLA VOLTA per il DB
+      const file = fileMap.get(entry.name);
+      if (!file) {
+          console.warn(`File non trovato per ${entry.name}. Saltato.`);
+          continue;
+      }
+      const imageId = await addCustomImage(file);
+      
+      // 2. AGGIUNGI LA CARTA NELL'ARRAY TANTE VOLTE QUANTO LA QUANTITÀ
+      for (let q = 0; q < entry.quantity; q++) { 
+          cardsToAdd.push({
+            name: entry.name,
+            imageId: imageId,
+            isUserUpload: true,
+            hasBakedBleed: opts.hasBakedBleed,
+          });
+      }
+      
+      setProgress(Math.round(((i + 1) / totalUnique) * 100)); 
+    }
+
+    if (cardsToAdd.length > 0) {
+      // Ora cardsToAdd conterrà 100 oggetti, uno per ogni copia
+      setLoadingMessage(`Adding ${cardsToAdd.length} total cards to collection...`); 
+      await addCards(cardsToAdd); // Aggiunge tutte le 100 carte al DB
+    }
+  } catch (error) {
+    console.error("Error during file processing:", error);
+    setLoadingMessage("Processing failed.");
+    throw error;
+  } finally {
+    setLoadingTask(null);
+    setLoadingMessage(null);
+    setProgress(0);
+  }
 }
